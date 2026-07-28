@@ -1,7 +1,6 @@
+import mongoose from "mongoose";
 import stripe from "../config/stripe.js";
 import { createCheckoutSession } from "../services/stripe.service.js";
-
-import mongoose from "mongoose";
 import Booking from "../models/bookingModel.js";
 import Movie from "../models/movieModel.js";
 
@@ -67,7 +66,7 @@ function buildMovieMatchClause(movieId, movieName) {
   return unique;
 }
 
-//this function gives you total amt and it also calculate amt for standard and recliner
+// this function gives you total amt and it also calculate amt for standard and recliner
 function computeTotalPaiseFromSeats(movie = {}, seats = [], options = {}) {
   const allowClientPrice = options.allowClientPrice === true;
   const standardRupee =
@@ -167,56 +166,247 @@ function normalizeSeatsFromInput(
 
 // to create a booking
 export async function createBooking(req, res) {
+  let booking;
   try {
-    const session = await createCheckoutSession({
-      amount: doc.amountPaise,
-      currency,
-      booking,
-      seatIdList,
-      auditorium,
-      showtime,
-      clientUrl: CLIENT_URL,
-    });
+    if (!req.user)
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required to create booking",
+      });
 
-    booking.paymentSessionId = session.id;
-    booking.stripeSession = {
-      id: session.id,
-      url: session.url || null,
+    const body = req.body || {};
+    const movieId = body.movieId || null;
+    const movieName = body.movieName || body.movie?.title || "";
+    const auditorium = body.audi || body.auditorium || "Audi 1";
+    const rawSeats = Array.isArray(body.seats)
+      ? body.seats.filter(Boolean)
+      : [];
+    const seatIdsFromBody = Array.isArray(body.seatIds)
+      ? body.seatIds.filter(Boolean)
+      : [];
+    const customer = String(
+      body.customer ||
+        req.user?.fullname ||
+        req.user?.username ||
+        req.user?.email ||
+        "Guest",
+    );
+    const email = String(body.email || (req.user && req.user.email) || "");
+    const paymentMethod = String(body.paymentMethod || "card").toLowerCase();
+    const currency = String(body.currency || "inr").toLowerCase();
+
+    if (
+      !body.showtime ||
+      (rawSeats.length === 0 && seatIdsFromBody.length === 0) ||
+      !email
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields (showtime/seats/email)",
+      });
+    }
+
+    let showtime;
+    try {
+      showtime = normalizeShowtimeToMinute(body.showtime);
+    } catch {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid showtime" });
+    }
+
+    // best-effort movie load
+    let movie = null;
+    if (movieId && mongoose.Types.ObjectId.isValid(String(movieId))) {
+      movie = await Movie.findById(movieId)
+        .lean()
+        .exec()
+        .catch(() => null);
+    } else if (movieName) {
+      movie = await Movie.findOne({
+        $or: [{ title: movieName }, { movieName }],
+      })
+        .lean()
+        .exec()
+        .catch(() => null);
+    }
+
+    const normalizedSeats = normalizeSeatsFromInput(
+      rawSeats,
+      seatIdsFromBody,
+      movie,
+    );
+    if (normalizedSeats.length === 0)
+      return res
+        .status(400)
+        .json({ success: false, message: "No valid seats provided" });
+
+    const totalPaise = computeTotalPaiseFromSeats(movie, normalizedSeats, {
+      allowClientPrice: true,
+    });
+    if (!totalPaise || totalPaise <= 0)
+      return res
+        .status(400)
+        .json({ success: false, message: "Computed amount is zero" });
+    const totalMain = Number((totalPaise / 100).toFixed(2));
+
+    // conflict detection (minute window)
+    const startWindow = new Date(showtime);
+    const endWindow = new Date(startWindow.getTime() + 60 * 1000);
+    const conflictQuery = {
+      showtime: { $gte: startWindow, $lt: endWindow },
+      auditorium,
+      status: { $in: BLOCKING_STATUSES },
+    };
+    const movieClauses = buildMovieMatchClause(movieId, movieName);
+    if (movieClauses.length > 0) conflictQuery.$or = movieClauses;
+
+    const existingBookings = await Booking.find(conflictQuery, { seats: 1 })
+      .lean()
+      .exec();
+    const occupiedSeats = new Set();
+    for (const b of existingBookings || []) {
+      const seats = Array.isArray(b.seats) ? b.seats : [];
+      for (const seat of seats) {
+        const seatId =
+          typeof seat === "string"
+            ? seat.trim().toUpperCase()
+            : (seat?.seatId || seat?.id || "").toString().trim().toUpperCase();
+        if (seatId) occupiedSeats.add(seatId);
+      }
+    }
+
+    const seatIdList = Array.from(
+      new Set(normalizedSeats.map((s) => s.seatId)),
+    );
+    const conflictingSeats = seatIdList.filter((s) => occupiedSeats.has(s));
+    if (conflictingSeats.length > 0) {
+      return res.status(409).json({
+        success: false,
+        message: "Some selected seats are already booked",
+        seats: conflictingSeats,
+      });
+    }
+
+    // movie snapshot + top-level searchable fields
+    const movieSnapshot = movie
+      ? {
+          id: movie._id,
+          title: movie.movieName || movie.title || "",
+          poster: movie.poster || movie.thumbnail || "",
+          category: Array.isArray(movie.categories)
+            ? movie.categories[0] || ""
+            : movie.category || "",
+          durationMins: movie.duration || movie.runtime || 0,
+          rating: movie.rating || null,
+        }
+      : {
+          id:
+            movieId && mongoose.Types.ObjectId.isValid(String(movieId))
+              ? new mongoose.Types.ObjectId(movieId)
+              : undefined,
+          title: movieName || "",
+          poster: "",
+          category: "",
+          durationMins: 0,
+        };
+
+    const doc = {
+      userId:
+        req.user && req.user._id
+          ? new mongoose.Types.ObjectId(req.user._id)
+          : undefined,
+      customer,
+      movie: movieSnapshot,
+      movieId: movieSnapshot.id,
+      movieName: movieSnapshot.title,
+      showtime,
+      auditorium,
+      seats: normalizedSeats,
+      basePrice: movie?.seatPrices?.standard ?? movie?.price ?? 0,
+      amount: totalMain,
+      amountPaise: totalPaise,
+      currency: (currency || "INR").toUpperCase(),
+      status: paymentMethod === "card" ? "pending" : "confirmed",
+      paymentStatus: paymentMethod === "card" ? "pending" : "paid",
+      paymentMethod,
+      meta: { rawRequest: { seatIds: seatIdList, clientSeats: rawSeats } },
     };
 
-    await Booking.findByIdAndUpdate(booking._id, {
-      paymentSessionId: session.id,
-      stripeSession: booking.stripeSession,
-    });
+    booking = await Booking.create(doc);
 
-    return res.status(201).json({
-      success: true,
-      message: "Booking created (pending payment)",
-      booking: {
-        id: booking._id,
-        status: booking.status,
-        amount: doc.amount,
-        amountPaise: doc.amountPaise,
-        currency: doc.currency,
-      },
-      checkout: {
+    if (paymentMethod !== "card") {
+      return res.status(201).json({
+        success: true,
+        message: "Booking created",
+        booking: {
+          id: booking._id,
+          status: booking.status,
+          amount: booking.amount,
+          amountPaise: booking.amountPaise,
+          currency: booking.currency,
+        },
+      });
+    }
+
+    try {
+      const session = await createCheckoutSession({
+        amount: doc.amountPaise,
+        currency,
+        booking,
+        seatIdList,
+        auditorium,
+        showtime,
+        clientUrl: CLIENT_URL,
+      });
+
+      booking.paymentSessionId = session.id;
+      booking.stripeSession = {
         id: session.id,
-        url: session.url,
-      },
-    });
-  } catch (err) {
-    await Booking.findByIdAndDelete(booking._id).catch(() => {});
+        url: session.url || null,
+      };
 
+      await Booking.findByIdAndUpdate(booking._id, {
+        paymentSessionId: session.id,
+        stripeSession: booking.stripeSession,
+      }).exec();
+
+      return res.status(201).json({
+        success: true,
+        message: "Booking created (pending payment)",
+        booking: {
+          id: booking._id,
+          status: booking.status,
+          amount: doc.amount,
+          amountPaise: doc.amountPaise,
+          currency: doc.currency,
+        },
+        checkout: {
+          id: session.id,
+          url: session.url,
+        },
+      });
+    } catch (stripeErr) {
+      await Booking.findByIdAndDelete(booking._id).catch(() => {});
+      return res.status(500).json({
+        success: false,
+        message: "Failed to create Stripe session",
+        error: String(stripeErr.message || stripeErr),
+      });
+    }
+  } catch (err) {
+    console.error("createBooking error:", err && err.stack ? err.stack : err);
+    if (booking?._id)
+      await Booking.findByIdAndDelete(booking._id).catch(() => {});
     return res.status(500).json({
       success: false,
-      message: "Failed to create Stripe session",
-      error: err.message,
+      message: "Server error",
+      error: String(err.message || err),
     });
   }
 }
 
 // Get Booking (all)
-
 export async function getBooking(req, res) {
   try {
     if (!req.user)
@@ -228,7 +418,6 @@ export async function getBooking(req, res) {
 
     const q = { userId: new mongoose.Types.ObjectId(userId) };
 
-    // getBooking
     // if the caller explicitly requests "all" skip default filter
     if (paymentStatus && String(paymentStatus).toLowerCase() !== "all") {
       q.paymentStatus = String(paymentStatus).toLowerCase();
@@ -247,7 +436,7 @@ export async function getBooking(req, res) {
   }
 }
 
-//listof bookings
+// list of bookings
 export async function listBookings(req, res) {
   try {
     const { movieId, page = 1, limit = 100, paymentStatus, status } = req.query;
@@ -258,13 +447,11 @@ export async function listBookings(req, res) {
         q.movieId = new mongoose.Types.ObjectId(String(movieId));
       else q.movieName = String(movieId);
     }
-    // if the caller explicitly requests "all" skip default filter
     if (paymentStatus && String(paymentStatus).toLowerCase() !== "all") {
       q.paymentStatus = String(paymentStatus).toLowerCase();
     } else if (status && String(status).toLowerCase() !== "all") {
       q.status = String(status).toLowerCase();
     } else {
-      // default: show only paid bookings for users
       q.paymentStatus = "paid";
     }
 
@@ -284,8 +471,7 @@ export async function listBookings(req, res) {
   }
 }
 
-//DELETE BOOKING
-
+// DELETE BOOKING
 export async function deleteBooking(req, res) {
   try {
     const { id } = req.params;
