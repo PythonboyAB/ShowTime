@@ -1,13 +1,25 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { addMoviePageStyles, addMoviePageCustomStyles } from '../assets/dummyStyles'
-import axios from 'axios'
-import {ToastContainer, toast} from "react-toastify";
-import { Film, Image as ImageIcon, Play, Star, Clock, Plus, X, Upload, Users} from "lucide-react"
-const API_HOST = 'http://localhost:5000'
+import React, { useEffect, useRef, useState } from "react";
+import {
+  addMoviePageStyles,
+  addMoviePageCustomStyles,
+} from "../assets/dummyStyles";
+import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
+import {
+  Film,
+  Image as ImageIcon,
+  Play,
+  Star,
+  Clock,
+  Plus,
+  X,
+  Upload,
+  Users,
+} from "lucide-react";
+const API_HOST = import.meta.env.VITE_API_BASE_URL;
 
 const AddPage = () => {
-
-    // form state
+  // form state
   const [movieName, setMovieName] = useState("");
   const [categories, setCategories] = useState([]);
   const [poster, setPoster] = useState(null);
@@ -28,7 +40,6 @@ const AddPage = () => {
   //seats
   const [standardSeatPrice, setStandardSeatPrice] = useState(0);
   const [reclinerSeatPrice, setReclinerSeatPrice] = useState(0);
-  
 
   //latesttrailers
   const [ltDurationHours, setLtDurationHours] = useState(1);
@@ -54,229 +65,228 @@ const AddPage = () => {
 
   // uploading indicator
   const [isUploading, setIsUploading] = useState(false);
-  
+
   // to calculate total
   useEffect(() => {
-   const total = (Number(durationHours) || 0)* 60 + (Number(durationMinutes) || 0);
-   setDuration(total);
+    const total =
+      (Number(durationHours) || 0) * 60 + (Number(durationMinutes) || 0);
+    setDuration(total);
   }, [durationHours, durationMinutes]);
 
-  
   const availableCategories = ["Action", "Horror", "Comedy", "Adventure"];
 
   function toggleCategory(cat) {
     setCategories((prev) =>
-      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat],
     );
   }
 
-   // file helpers
-   const handlePosterChange = (e) => {
-      const file = e.target.files && e.target.files[0];
-      if (!file) return;
-      setPoster(file);
-      const reader = new FileReader();
-      reader.onload = (ev) => setPosterPreview(ev.target.result);
-      reader.readAsDataURL(file);
-      e.target.value = null;
-    };
-  
-    const handleLtThumbnailChange = (e) => {
-      const file = e.target.files && e.target.files[0];
-      if (!file) return;
-      setLtThumbnail(file);
-      const reader = new FileReader();
-      reader.onload = (ev) => setLtThumbnailPreview(ev.target.result);
-      reader.readAsDataURL(file);
-      e.target.value = null;
-    };
+  // file helpers
+  const handlePosterChange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    setPoster(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setPosterPreview(ev.target.result);
+    reader.readAsDataURL(file);
+    e.target.value = null;
+  };
 
-    // generalized helpers for reading multiple files to preview with optional meta
+  const handleLtThumbnailChange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    setLtThumbnail(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setLtThumbnailPreview(ev.target.result);
+    reader.readAsDataURL(file);
+    e.target.value = null;
+  };
+
+  // generalized helpers for reading multiple files to preview with optional meta
   const readFilesToPreviewsWithMeta = (files, setter, metaType = null) => {
-   const arr = Array.from(files);
-   const readers = arr.map((file) => {
-     return new Promise((res) => {
-       const r = new FileReader();
-       r.onload = (e) =>
-         res({
-           file,
-           preview: e.target.result,
-           ...(metaType === "name" ? { name: "" } : {}),
-           ...(metaType === "nameRole" ? { name: "", role: "" } : {}),
-         });
-       r.readAsDataURL(file);
-     });
-   });
-   Promise.all(readers).then((items) => {
-     setter((prev) => [...prev, ...items]);
-   });
- };
+    const arr = Array.from(files);
+    const readers = arr.map((file) => {
+      return new Promise((res) => {
+        const r = new FileReader();
+        r.onload = (e) =>
+          res({
+            file,
+            preview: e.target.result,
+            ...(metaType === "name" ? { name: "" } : {}),
+            ...(metaType === "nameRole" ? { name: "", role: "" } : {}),
+          });
+        r.readAsDataURL(file);
+      });
+    });
+    Promise.all(readers).then((items) => {
+      setter((prev) => [...prev, ...items]);
+    });
+  };
 
- const handleMultipleFiles = (e, setter, metaType = null) => {
-   if (!e.target.files) return;
-   readFilesToPreviewsWithMeta(e.target.files, setter, metaType);
-   e.target.value = null;
- };
+  const handleMultipleFiles = (e, setter, metaType = null) => {
+    if (!e.target.files) return;
+    readFilesToPreviewsWithMeta(e.target.files, setter, metaType);
+    e.target.value = null;
+  };
 
- const readFilesToNamedPreviews = (files, setter) => {
-   const arr = Array.from(files);
-   const readers = arr.map((file) => {
-     return new Promise((res) => {
-       const r = new FileReader();
-       r.onload = (e) => res({ file, preview: e.target.result, name: "" });
-       r.readAsDataURL(file);
-     });
-   });
-   Promise.all(readers).then((items) => {
-     setter((prev) => [...prev, ...items]);
-   });
- };
+  const readFilesToNamedPreviews = (files, setter) => {
+    const arr = Array.from(files);
+    const readers = arr.map((file) => {
+      return new Promise((res) => {
+        const r = new FileReader();
+        r.onload = (e) => res({ file, preview: e.target.result, name: "" });
+        r.readAsDataURL(file);
+      });
+    });
+    Promise.all(readers).then((items) => {
+      setter((prev) => [...prev, ...items]);
+    });
+  };
 
- const handleMultipleNamedFiles = (e, setter) => {
-   if (!e.target.files) return;
-   readFilesToNamedPreviews(e.target.files, setter);
-   e.target.value = null;
- };
+  const handleMultipleNamedFiles = (e, setter) => {
+    if (!e.target.files) return;
+    readFilesToNamedPreviews(e.target.files, setter);
+    e.target.value = null;
+  };
 
- const removePreview = (id, setter) => {
-   setter((prev) => prev.filter((p, idx) => idx !== id));
- };
+  const removePreview = (id, setter) => {
+    setter((prev) => prev.filter((p, idx) => idx !== id));
+  };
 
- const updateNamedItemName = (idx, setter, value) => {
-   setter((prev) =>
-     prev.map((it, i) => (i === idx ? { ...it, name: value } : it))
-   );
- };
+  const updateNamedItemName = (idx, setter, value) => {
+    setter((prev) =>
+      prev.map((it, i) => (i === idx ? { ...it, name: value } : it)),
+    );
+  };
 
- const updateMetaField = (idx, setter, field, value) => {
-   setter((prev) =>
-     prev.map((it, i) => (i === idx ? { ...it, [field]: value } : it))
-   );
- };
+  const updateMetaField = (idx, setter, field, value) => {
+    setter((prev) =>
+      prev.map((it, i) => (i === idx ? { ...it, [field]: value } : it)),
+    );
+  };
 
- // slots helpers
- function addSlot() {
-   setSlots((s) => [
-     ...s,
-     { id: Date.now() + Math.random(), date: "", time: "", ampm: "AM" },
-   ]);
- }
- function removeSlot(id) {
-   setSlots((s) => s.filter((slot) => slot.id !== id));
- }
- function updateSlot(id, field, value) {
-   setSlots((s) =>
-     s.map((slot) => (slot.id === id ? { ...slot, [field]: value } : slot))
-   );
- }
+  // slots helpers
+  function addSlot() {
+    setSlots((s) => [
+      ...s,
+      { id: Date.now() + Math.random(), date: "", time: "", ampm: "AM" },
+    ]);
+  }
+  function removeSlot(id) {
+    setSlots((s) => s.filter((slot) => slot.id !== id));
+  }
+  function updateSlot(id, field, value) {
+    setSlots((s) =>
+      s.map((slot) => (slot.id === id ? { ...slot, [field]: value } : slot)),
+    );
+  }
 
- function resetForm() {
-   setMovieName("");
-   setCategories([]);
-   setPoster(null);
-   setPosterPreview(null);
-   setTrailerUrl("");
-   setVideoUrl("");
-   setRating(7.5);
-   setDuration(120);
-   setDurationHours(Math.floor(120 / 60));
-   setDurationMinutes(120 % 60);
-   setSlots([{ id: Date.now(), date: "", time: "", ampm: "AM" }]);
-   setCastImages([]);
-   setDirectorImages([]);
-   setProducerImages([]);
-   setStory("");
-   setMovieType("normal");
-   setStandardSeatPrice(0);
-   setReclinerSeatPrice(0);
-   setLtDurationHours(1);
-   setLtDurationMinutes(30);
-   setLtYear(new Date().getFullYear());
-   setLtDescription("");
-   setLtThumbnail(null);
-   setLtThumbnailPreview(null);
-   setLtVideoUrl("");
-   setLtDirectorImages([]);
-   setLtProducerImages([]);
-   setLtSingerImages([]);
-   setAuditorium("Audi 1");
-   setCustomAuditorium("");
- }
+  function resetForm() {
+    setMovieName("");
+    setCategories([]);
+    setPoster(null);
+    setPosterPreview(null);
+    setTrailerUrl("");
+    setVideoUrl("");
+    setRating(7.5);
+    setDuration(120);
+    setDurationHours(Math.floor(120 / 60));
+    setDurationMinutes(120 % 60);
+    setSlots([{ id: Date.now(), date: "", time: "", ampm: "AM" }]);
+    setCastImages([]);
+    setDirectorImages([]);
+    setProducerImages([]);
+    setStory("");
+    setMovieType("normal");
+    setStandardSeatPrice(0);
+    setReclinerSeatPrice(0);
+    setLtDurationHours(1);
+    setLtDurationMinutes(30);
+    setLtYear(new Date().getFullYear());
+    setLtDescription("");
+    setLtThumbnail(null);
+    setLtThumbnailPreview(null);
+    setLtVideoUrl("");
+    setLtDirectorImages([]);
+    setLtProducerImages([]);
+    setLtSingerImages([]);
+    setAuditorium("Audi 1");
+    setCustomAuditorium("");
+  }
 
+  // this function validates all the field are filled or not with correct details
+  function validate() {
+    if (movieType === "latestTrailers") {
+      if (!movieName.trim()) return "Please enter title for latest trailer.";
+      if (!categories.length)
+        return "Please choose at least one genre for latest trailer.";
+      if (!ltThumbnail)
+        return "Please select a thumbnail image for latest trailer.";
+      if (!ltVideoUrl.trim())
+        return "Please provide the video URL for latest trailer.";
+      if (!ltDescription.trim())
+        return "Please add a description for latest trailer.";
+      if (!ltYear) return "Please enter year for latest trailer.";
+      const badDirector = ltDirectorImages.find(
+        (d) => d && (!d.name || !d.name.trim()),
+      );
+      if (badDirector) return "Please add a name for every director image.";
+      const badProducer = ltProducerImages.find(
+        (d) => d && (!d.name || !d.name.trim()),
+      );
+      if (badProducer) return "Please add a name for every producer image.";
+      const badSinger = ltSingerImages.find(
+        (d) => d && (!d.name || !d.name.trim()),
+      );
+      if (badSinger) return "Please add a name for every singer image.";
+      return null;
+    }
 
-// this function validates all the field are filled or not with correct details
- function validate() {
-   if (movieType === "latestTrailers") {
-     if (!movieName.trim()) return "Please enter title for latest trailer.";
-     if (!categories.length)
-       return "Please choose at least one genre for latest trailer.";
-     if (!ltThumbnail)
-       return "Please select a thumbnail image for latest trailer.";
-     if (!ltVideoUrl.trim())
-       return "Please provide the video URL for latest trailer.";
-     if (!ltDescription.trim())
-       return "Please add a description for latest trailer.";
-     if (!ltYear) return "Please enter year for latest trailer.";
-     const badDirector = ltDirectorImages.find(
-       (d) => d && (!d.name || !d.name.trim())
-     );
-     if (badDirector) return "Please add a name for every director image.";
-     const badProducer = ltProducerImages.find(
-       (d) => d && (!d.name || !d.name.trim())
-     );
-     if (badProducer) return "Please add a name for every producer image.";
-     const badSinger = ltSingerImages.find(
-       (d) => d && (!d.name || !d.name.trim())
-     );
-     if (badSinger) return "Please add a name for every singer image.";
-     return null;
-   }
+    if (!movieName.trim()) return "Please enter movie name.";
+    if (movieType !== "releaseSoon" && !poster)
+      return "Please add a poster image.";
+    if (movieType !== "releaseSoon") {
+      if (!categories.length) return "Please choose at least one category.";
+    }
 
-   if (!movieName.trim()) return "Please enter movie name.";
-   if (movieType !== "releaseSoon" && !poster)
-     return "Please add a poster image.";
-   if (movieType !== "releaseSoon") {
-     if (!categories.length) return "Please choose at least one category.";
-   }
+    if (movieType === "normal" || movieType === "featured") {
+      if (
+        Number.isNaN(Number(standardSeatPrice)) ||
+        Number(standardSeatPrice) <= 0
+      )
+        return "Please enter a valid standard seat price.";
+      if (
+        Number.isNaN(Number(reclinerSeatPrice)) ||
+        Number(reclinerSeatPrice) <= 0
+      )
+        return "Please enter a valid recliner seat price.";
 
-   if (movieType === "normal" || movieType === "featured") {
-     if (
-       Number.isNaN(Number(standardSeatPrice)) ||
-       Number(standardSeatPrice) <= 0
-     )
-       return "Please enter a valid standard seat price.";
-     if (
-       Number.isNaN(Number(reclinerSeatPrice)) ||
-       Number(reclinerSeatPrice) <= 0
-     )
-       return "Please enter a valid recliner seat price.";
+      const finalAuditorium =
+        auditorium === "Other" ? (customAuditorium || "").trim() : auditorium;
+      if (!finalAuditorium) return "Please select auditorium.";
+    }
 
-     const finalAuditorium =
-       auditorium === "Other" ? (customAuditorium || "").trim() : auditorium;
-     if (!finalAuditorium) return "Please select auditorium.";
-   }
+    if (movieType === "normal" || movieType === "featured") {
+      const badCast = castImages.find((c) => {
+        if (!c) return false;
+        return !c.name || !c.name.trim() || !c.role || !c.role.trim();
+      });
+      if (badCast) return "Please add name and role for every cast image.";
+      const badDirector = directorImages.find(
+        (d) => d && (!d.name || !d.name.trim()),
+      );
+      if (badDirector) return "Please add a name for every director image.";
+      const badProducer = producerImages.find(
+        (p) => p && (!p.name || !p.name.trim()),
+      );
+      if (badProducer) return "Please add a name for every producer image.";
+    }
 
-   if (movieType === "normal" || movieType === "featured") {
-     const badCast = castImages.find((c) => {
-       if (!c) return false;
-       return !c.name || !c.name.trim() || !c.role || !c.role.trim();
-     });
-     if (badCast) return "Please add name and role for every cast image.";
-     const badDirector = directorImages.find(
-       (d) => d && (!d.name || !d.name.trim())
-     );
-     if (badDirector) return "Please add a name for every director image.";
-     const badProducer = producerImages.find(
-       (p) => p && (!p.name || !p.name.trim())
-     );
-     if (badProducer) return "Please add a name for every producer image.";
-   }
+    return null;
+  }
 
-   return null;
- }
-
-   // Helper: append multiple files under same field name
-   function appendFilesToForm(form, fieldName, items) {
+  // Helper: append multiple files under same field name
+  function appendFilesToForm(form, fieldName, items) {
     if (!items || items.length === 0) return;
     for (let i = 0; i < items.length; i++) {
       const it = items[i];
@@ -344,7 +354,7 @@ const AddPage = () => {
         JSON.stringify({
           standard: Number(standardSeatPrice),
           recliner: Number(reclinerSeatPrice),
-        })
+        }),
       );
 
       const finalAuditorium =
@@ -360,8 +370,8 @@ const AddPage = () => {
             name: c.name || "",
             role: c.role || "",
             file: c.file ? c.file.name : null,
-          }))
-        )
+          })),
+        ),
       );
       form.append(
         "directors",
@@ -369,8 +379,8 @@ const AddPage = () => {
           directorImages.map((d) => ({
             name: d.name || "",
             file: d.file ? d.file.name : null,
-          }))
-        )
+          })),
+        ),
       );
       form.append(
         "producers",
@@ -378,8 +388,8 @@ const AddPage = () => {
           producerImages.map((p) => ({
             name: p.name || "",
             file: p.file ? p.file.name : null,
-          }))
-        )
+          })),
+        ),
       );
       form.append("story", story || "");
 
@@ -390,21 +400,20 @@ const AddPage = () => {
 
     try {
       const resp = await axios.post(`${API_HOST}/api/movies`, form, {
-        headers: {'Content-Type': 'multipart/form-data'}
+        headers: { "Content-Type": "multipart/form-data" },
       });
-      if(resp?.data?.success) {
-        toast.success('Movie added successfully!');
+      if (resp?.data?.success) {
+        toast.success("Movie added successfully!");
         resetForm();
-
-      }
-      else{
-        toast.error(resp?.data?.message || 'Unexpected error from server')
+      } else {
+        toast.error(resp?.data?.message || "Unexpected error from server");
       }
     } catch (err) {
-      console.error('Submit error:', err);
-      const msg = err?.respone?.data?.message || err.message || " Failed to upload";
+      console.error("Submit error:", err);
+      const msg =
+        err?.respone?.data?.message || err.message || " Failed to upload";
       toast.error(msg);
-    } finally{
+    } finally {
       setIsUploading(false);
     }
   }
@@ -415,9 +424,7 @@ const AddPage = () => {
 
       <div className={addMoviePageStyles.mainContainer}>
         <header className={addMoviePageStyles.header}>
-          <h1
-            className={`${addMoviePageStyles.title} font-cinzel`}
-          >
+          <h1 className={`${addMoviePageStyles.title} font-cinzel`}>
             <Film className={addMoviePageStyles.titleIcon} /> Add Movie
           </h1>
         </header>
@@ -540,7 +547,7 @@ const AddPage = () => {
                       value={ltYear}
                       onChange={(e) =>
                         setLtYear(
-                          Number(e.target.value) || new Date().getFullYear()
+                          Number(e.target.value) || new Date().getFullYear(),
                         )
                       }
                       className={addMoviePageStyles.durationInput}
@@ -549,7 +556,9 @@ const AddPage = () => {
                 </div>
 
                 <div className={addMoviePageStyles.gridCols2}>
-                  <label className={addMoviePageStyles.label}>Description</label>
+                  <label className={addMoviePageStyles.label}>
+                    Description
+                  </label>
                   <textarea
                     value={ltDescription}
                     onChange={(e) => setLtDescription(e.target.value)}
@@ -560,7 +569,9 @@ const AddPage = () => {
                 </div>
 
                 <div>
-                  <label className={addMoviePageStyles.label}>Thumbnail Image</label>
+                  <label className={addMoviePageStyles.label}>
+                    Thumbnail Image
+                  </label>
                   <div className={addMoviePageStyles.uploadContainer}>
                     {ltThumbnailPreview ? (
                       <div className={addMoviePageStyles.previewContainer}>
@@ -583,7 +594,9 @@ const AddPage = () => {
                     ) : (
                       <label className={addMoviePageStyles.uploadContent}>
                         <div className={addMoviePageStyles.uploadIconContainer}>
-                          <ImageIcon className={addMoviePageStyles.uploadIcon} />
+                          <ImageIcon
+                            className={addMoviePageStyles.uploadIcon}
+                          />
                         </div>
                         <div className={addMoviePageStyles.uploadText}>
                           Click to upload thumbnail
@@ -656,7 +669,9 @@ const AddPage = () => {
             <>
               <div className={addMoviePageStyles.gridCols3}>
                 <div className="md:col-span-1">
-                  <label className={addMoviePageStyles.label}>Poster Image</label>
+                  <label className={addMoviePageStyles.label}>
+                    Poster Image
+                  </label>
                   <div className={addMoviePageStyles.uploadContainer}>
                     {posterPreview ? (
                       <div className={addMoviePageStyles.previewContainer}>
@@ -680,7 +695,9 @@ const AddPage = () => {
                     ) : (
                       <label className={addMoviePageStyles.uploadContent}>
                         <div className={addMoviePageStyles.uploadIconContainer}>
-                          <ImageIcon className={addMoviePageStyles.uploadIcon} />
+                          <ImageIcon
+                            className={addMoviePageStyles.uploadIcon}
+                          />
                         </div>
                         <div className={addMoviePageStyles.uploadText}>
                           Click to upload poster
@@ -698,7 +715,9 @@ const AddPage = () => {
 
                 <div className="md:col-span-2 space-y-4">
                   <div className={addMoviePageStyles.inputContainer}>
-                    <label className={addMoviePageStyles.label}>Movie Name</label>
+                    <label className={addMoviePageStyles.label}>
+                      Movie Name
+                    </label>
                     <input
                       value={movieName}
                       onChange={(e) => setMovieName(e.target.value)}
@@ -708,7 +727,9 @@ const AddPage = () => {
                   </div>
 
                   <div className={addMoviePageStyles.inputContainer}>
-                    <label className={addMoviePageStyles.label}>Categories</label>
+                    <label className={addMoviePageStyles.label}>
+                      Categories
+                    </label>
                     <div className={addMoviePageStyles.categoryContainer}>
                       {availableCategories.map((cat) => (
                         <button
@@ -760,7 +781,9 @@ const AddPage = () => {
 
                       {/* AUDITORIUM SELECTOR */}
                       <div>
-                        <label className={addMoviePageStyles.label}>Auditorium</label>
+                        <label className={addMoviePageStyles.label}>
+                          Auditorium
+                        </label>
                         <select
                           value={auditorium}
                           onChange={(e) => setAuditorium(e.target.value)}
@@ -794,7 +817,9 @@ const AddPage = () => {
                       </div>
 
                       <div>
-                        <label className={addMoviePageStyles.label}>Rating</label>
+                        <label className={addMoviePageStyles.label}>
+                          Rating
+                        </label>
                         <div className="flex items-center gap-3">
                           <Star />
                           <input
@@ -886,13 +911,16 @@ const AddPage = () => {
               {movieType !== "releaseSoon" && (
                 <section className={addMoviePageStyles.section}>
                   <div className={addMoviePageStyles.slotsHeader}>
-                    <h3 className={addMoviePageStyles.sectionTitle}>Movie Slots</h3>
+                    <h3 className={addMoviePageStyles.sectionTitle}>
+                      Movie Slots
+                    </h3>
                     <button
                       type="button"
                       onClick={addSlot}
                       className={addMoviePageStyles.addSlotButton}
                     >
-                      <Plus className={addMoviePageStyles.addSlotIcon} /> Add Slot
+                      <Plus className={addMoviePageStyles.addSlotIcon} /> Add
+                      Slot
                     </button>
                   </div>
 
@@ -1020,109 +1048,142 @@ const AddPage = () => {
           </div>
         </form>
       </div>
-      <ToastContainer position="top-right"/>
+      <ToastContainer position="top-right" />
     </div>
-  )
-}
+  );
+};
 
+// Uploader function
 
-// Uploader function 
-
-function Uploader({title, onFiles, items, remove, icon, updateMeta}) {
-  return(
+function Uploader({ title, onFiles, items, remove, icon, updateMeta }) {
+  return (
     <div className={addMoviePageStyles.uploaderContainer}>
       <div className={addMoviePageStyles.uploaderHeader}>
-        <div className={addMoviePageStyles.uploaderTitle}>{icon}
-        <div className={addMoviePageStyles.uploaderTitleText}>{title}</div>
+        <div className={addMoviePageStyles.uploaderTitle}>
+          {icon}
+          <div className={addMoviePageStyles.uploaderTitleText}>{title}</div>
 
-        <h4 className={addMoviePageStyles.uploaderTitleText}>{title}</h4>
-      </div>
-      <label className={addMoviePageStyles.uploaderAddButton}>
-        + Add
-        <input type="file" multiple accept="image/" onChange={onFiles} className={addMoviePageStyles.uploaderAddInput} />
-      </label>
-    </div>
-
-    <div className={addMoviePageStyles.uploaderGrid}>
-    { items && items.length ? (
-      items.map((it, idx) => (
-        <div key={idx} className={addMoviePageStyles.uploaderItem}>
-          <img src={it.preview} alt="preview" className={addMoviePageStyles.uploaderItemImage} />
-          <button type="button" onClick={() => remove(idx)} className={addMoviePageStyles.uploaderItemRemove}>
-            <X className={addMoviePageStyles.uploaderItemRemove}/>
-          </button>
-          {typeof it.name !== 'undefined' && (
-            <div className="mt-2">
-              <input value={it.name} onChange={(e) =>
-              updateMeta && updateMeta(idx, "name" , e.target.value)
-              } placeholder="Name" className={addMoviePageStyles.uploaderItemInput}/>
-            </div>
-          )}
-          {typeof it.role !== 'undefined' && (
-            <div className="mt-2">
-              <input value={it.role} onChange={(e) =>
-              updateMeta && updateMeta(idx, "role" , e.target.value)
-              } placeholder="Role" className={addMoviePageStyles.uploaderItemInput}/>
-            </div>
-          )}
+          <h4 className={addMoviePageStyles.uploaderTitleText}>{title}</h4>
         </div>
-      ))
-    ) :(
-      <div className={addMoviePageStyles.uploaderEmpty}>
-        No image added
+        <label className={addMoviePageStyles.uploaderAddButton}>
+          + Add
+          <input
+            type="file"
+            multiple
+            accept="image/"
+            onChange={onFiles}
+            className={addMoviePageStyles.uploaderAddInput}
+          />
+        </label>
       </div>
-    )}
+
+      <div className={addMoviePageStyles.uploaderGrid}>
+        {items && items.length ? (
+          items.map((it, idx) => (
+            <div key={idx} className={addMoviePageStyles.uploaderItem}>
+              <img
+                src={it.preview}
+                alt="preview"
+                className={addMoviePageStyles.uploaderItemImage}
+              />
+              <button
+                type="button"
+                onClick={() => remove(idx)}
+                className={addMoviePageStyles.uploaderItemRemove}
+              >
+                <X className={addMoviePageStyles.uploaderItemRemove} />
+              </button>
+              {typeof it.name !== "undefined" && (
+                <div className="mt-2">
+                  <input
+                    value={it.name}
+                    onChange={(e) =>
+                      updateMeta && updateMeta(idx, "name", e.target.value)
+                    }
+                    placeholder="Name"
+                    className={addMoviePageStyles.uploaderItemInput}
+                  />
+                </div>
+              )}
+              {typeof it.role !== "undefined" && (
+                <div className="mt-2">
+                  <input
+                    value={it.role}
+                    onChange={(e) =>
+                      updateMeta && updateMeta(idx, "role", e.target.value)
+                    }
+                    placeholder="Role"
+                    className={addMoviePageStyles.uploaderItemInput}
+                  />
+                </div>
+              )}
+            </div>
+          ))
+        ) : (
+          <div className={addMoviePageStyles.uploaderEmpty}>No image added</div>
+        )}
+      </div>
     </div>
-    </div>
-  )
+  );
 }
 // for latestTrailer we NamedUploader
-function NamedUploader({title, onFiles, items, remove, updateName, icon}) {
-  return(
+function NamedUploader({ title, onFiles, items, remove, updateName, icon }) {
+  return (
     <div className={addMoviePageStyles.uploaderContainer}>
-         <div className={addMoviePageStyles.uploaderHeader}>
-        <div className={addMoviePageStyles.uploaderTitle}>{icon}
-        <div className={addMoviePageStyles.uploaderTitleText}>{title}</div>
+      <div className={addMoviePageStyles.uploaderHeader}>
+        <div className={addMoviePageStyles.uploaderTitle}>
+          {icon}
+          <div className={addMoviePageStyles.uploaderTitleText}>{title}</div>
 
-        <h4 className={addMoviePageStyles.uploaderTitleText}>{title}</h4>
+          <h4 className={addMoviePageStyles.uploaderTitleText}>{title}</h4>
+        </div>
+        <label className={addMoviePageStyles.uploaderAddButton}>
+          + Add
+          <input
+            type="file"
+            multiple
+            accept="image/"
+            onChange={onFiles}
+            className={addMoviePageStyles.uploaderAddInput}
+          />
+        </label>
       </div>
-      <label className={addMoviePageStyles.uploaderAddButton}>
-        + Add
-        <input type="file" multiple accept="image/" onChange={onFiles} className={addMoviePageStyles.uploaderAddInput} />
-      </label>
-    </div>
-    <div className={addMoviePageStyles.namedUploaderGrid}>
-    { items && items.length ? (
-      items.map((it, idx) => (
-        <div key={idx} className={addMoviePageStyles.namedUploaderItem}>
-          <img src={it.preview} alt="preview" className={addMoviePageStyles.namedUploaderImage} />
-          <div className='flex-1'>
-            <input 
-            value={it.name} 
-            onChange={(e) => updateName(idx, e.target.value)}
-            placeholder='Name' 
-            className={addMoviePageStyles.namedUploaderInput}
-            />
-            <div className={addMoviePageStyles.namedUploaderFileName}>
-              File: {it.file?.name}
-              </div>       
-          </div>
-          <button 
-          type="button" 
-          onClick={() => remove(idx)} 
-          className={addMoviePageStyles.uploaderItemRemove}>
-            <X className={addMoviePageStyles.uploaderItemRemove}/>
-          </button>
-          </div>
-          ))
-          ): (
-            <div className={addMoviePageStyles.uploaderEmpty}>
-              No images added
+      <div className={addMoviePageStyles.namedUploaderGrid}>
+        {items && items.length ? (
+          items.map((it, idx) => (
+            <div key={idx} className={addMoviePageStyles.namedUploaderItem}>
+              <img
+                src={it.preview}
+                alt="preview"
+                className={addMoviePageStyles.namedUploaderImage}
+              />
+              <div className="flex-1">
+                <input
+                  value={it.name}
+                  onChange={(e) => updateName(idx, e.target.value)}
+                  placeholder="Name"
+                  className={addMoviePageStyles.namedUploaderInput}
+                />
+                <div className={addMoviePageStyles.namedUploaderFileName}>
+                  File: {it.file?.name}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => remove(idx)}
+                className={addMoviePageStyles.uploaderItemRemove}
+              >
+                <X className={addMoviePageStyles.uploaderItemRemove} />
+              </button>
             </div>
-          )}
-    
+          ))
+        ) : (
+          <div className={addMoviePageStyles.uploaderEmpty}>
+            No images added
+          </div>
+        )}
+      </div>
     </div>
-    </div>
-  )
+  );
 }
-export default AddPage
+export default AddPage;
