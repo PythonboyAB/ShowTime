@@ -9,7 +9,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Film, Clock, MapPin, QrCode, ChevronDown, X } from "lucide-react";
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 function getStoredToken() {
   return (
@@ -32,11 +32,19 @@ const BookingsPage = () => {
   function computeTotals(booking) {
     if (booking.amountPaise != null) {
       const amt = Number(booking.amountPaise) / 100;
-      return { subtotal: amt, total: amt, seatCount: booking.seats?.length || 0 };
+      return {
+        subtotal: amt,
+        total: amt,
+        seatCount: booking.seats?.length || 0,
+      };
     }
 
     if (typeof booking.amount === "number") {
-      return { subtotal: booking.amount, total: booking.amount, seatCount: booking.seats?.length || 0 };
+      return {
+        subtotal: booking.amount,
+        total: booking.amount,
+        seatCount: booking.seats?.length || 0,
+      };
     }
 
     const seats = booking.seats || [];
@@ -110,8 +118,7 @@ const BookingsPage = () => {
     if (bookings.length) makeQRs();
   }, [bookings]);
 
-  const toggle = (id) =>
-    setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
+  const toggle = (id) => setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
 
   const closeModal = () => setScannedDetails(null);
 

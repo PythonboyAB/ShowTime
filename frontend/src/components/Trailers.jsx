@@ -1,9 +1,16 @@
-import { Calendar, ChevronLeft, ChevronRight, Clapperboard, Clock, Play, X } from 'lucide-react'
-import {trailersStyles, trailersCSS} from '../assets/dummyStyles'
-import { useEffect, useRef, useState } from 'react';
+import {
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Clapperboard,
+  Clock,
+  Play,
+  X,
+} from "lucide-react";
+import { trailersStyles, trailersCSS } from "../assets/dummyStyles";
+import { useEffect, useRef, useState } from "react";
 
-const API_BASE = "http://localhost:5000";
-
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 const PLACEHOLDER_THUMB =
   "https://via.placeholder.com/800x450?text=No+Thumbnail";
@@ -61,15 +68,15 @@ const mapMovieToTrailerItem = (movie) => {
   const duration = lt.duration
     ? formatDuration(lt.duration)
     : movie.duration
-    ? formatDuration(movie.duration)
-    : "";
+      ? formatDuration(movie.duration)
+      : "";
   const year = lt.year || movie.year || "";
   const genre =
     lt.genres && lt.genres.length
       ? lt.genres.join(", ")
       : movie.categories && movie.categories.length
-      ? movie.categories.join(", ")
-      : "";
+        ? movie.categories.join(", ")
+        : "";
   const description = lt.description || movie.story || "";
 
   // Build credits object expected by UI: { Director: { name, image }, Producer: {...}, Singer: {...} }
@@ -140,22 +147,22 @@ const Trailers = () => {
     async function load() {
       try {
         const url = `${API_BASE}/api/movies?type=latestTrailers&limit=50`;
-        const res = await fetch(url, {signal: ac.signal});
-        if(!res.ok) throw new Error(`HTTP ${res.status}`);
+        const res = await fetch(url, { signal: ac.signal });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
         const json = await res.json();
         const items = Array.isArray(json.items) ? json.items : [];
 
-        const mapped = items.map(mapMovieToTrailerItem)
+        const mapped = items.map(mapMovieToTrailerItem);
         console.log(mapped);
         setTrailers(mapped);
         setFeaturedTrailer(mapped[0] || null);
-        setLoading(false)
+        setLoading(false);
       } catch (err) {
         if (err.name === "AbortError") return;
-        console.error('failed to load from server' , err);
-        setError('Failed to load from server');
-        setLoading(false)
+        console.error("failed to load from server", err);
+        setError("Failed to load from server");
+        setLoading(false);
       }
     }
     load();
@@ -167,7 +174,7 @@ const Trailers = () => {
     const handleScroll = () => {};
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);// for smooth scroll
+  }, []); // for smooth scroll
 
   const scrollLeft = () => {
     if (carouselRef.current) {
@@ -180,7 +187,7 @@ const Trailers = () => {
       carouselRef.current.scrollBy({ left: 280, behavior: "smooth" });
     }
   };
-// center selected item in carousel
+  // center selected item in carousel
   const selectTrailer = (trailer) => {
     setFeaturedTrailer(trailer);
     setIsPlaying(false);
@@ -195,11 +202,14 @@ const Trailers = () => {
     // center selected item in carousel
     try {
       if (carouselRef.current) {
-        const el = carouselRef.current.querySelector(`[data-id='${trailer.id}']`);
+        const el = carouselRef.current.querySelector(
+          `[data-id='${trailer.id}']`,
+        );
         if (el) {
           const rect = el.getBoundingClientRect();
           const parentRect = carouselRef.current.getBoundingClientRect();
-          const offset = rect.left - parentRect.left - parentRect.width / 2 + rect.width / 2;
+          const offset =
+            rect.left - parentRect.left - parentRect.width / 2 + rect.width / 2;
           carouselRef.current.scrollBy({ left: offset, behavior: "smooth" });
         }
       }
@@ -207,7 +217,7 @@ const Trailers = () => {
       // ignore
     }
   };
-//helps in toggling 
+  //helps in toggling
   const togglePlay = () => {
     setIsPlaying((s) => !s);
   };
@@ -224,7 +234,8 @@ const Trailers = () => {
         const vid = url.searchParams.get("v");
         if (vid) return `https://www.youtube.com/embed/${vid}`;
         // If already embed path, return that
-        if (url.pathname.includes("/embed/")) return `https://www.youtube.com${url.pathname}`;
+        if (url.pathname.includes("/embed/"))
+          return `https://www.youtube.com${url.pathname}`;
       }
 
       // short youtu.be links
@@ -257,32 +268,34 @@ const Trailers = () => {
     // add autoplay / mute / rel
     return `${base}${sep}autoplay=1&mute=${isMuted ? 1 : 0}&rel=0`;
   };
-// helps in playing the viedo
-if(loading) {
-  return(
-    <div className={trailersStyles.container}>
-      <div className="py-12 text-center text-gray-300">Loading Trailers.. </div>
-    </div>
-  );
-}
-if(error){
-  return(
-    <div className={trailersStyles.container}>
-      <div className="py-12 text-center text-red-400">{error}</div>
-    </div>
-  );
-}
-
-if (!featuredTrailer) {
-  return (
-    <div className={trailersStyles.container}>
-      <div className="py-12 text-center text-gray-300">
-        No trailer selected
+  // helps in playing the viedo
+  if (loading) {
+    return (
+      <div className={trailersStyles.container}>
+        <div className="py-12 text-center text-gray-300">
+          Loading Trailers..{" "}
+        </div>
       </div>
-    </div>
-  );
-}
-const dataToRender = trailers || [];
+    );
+  }
+  if (error) {
+    return (
+      <div className={trailersStyles.container}>
+        <div className="py-12 text-center text-red-400">{error}</div>
+      </div>
+    );
+  }
+
+  if (!featuredTrailer) {
+    return (
+      <div className={trailersStyles.container}>
+        <div className="py-12 text-center text-gray-300">
+          No trailer selected
+        </div>
+      </div>
+    );
+  }
+  const dataToRender = trailers || [];
   return (
     <div className={trailersStyles.container}>
       <main className={trailersStyles.main}>
@@ -290,66 +303,97 @@ const dataToRender = trailers || [];
           {/**Left side */}
           <div className={trailersStyles.leftSide}>
             <div className={trailersStyles.leftCard}>
-              <h2 
-              className={trailersStyles.leftTitle} 
-              style={{fontFamily: "Monoton, cursive"}}
+              <h2
+                className={trailersStyles.leftTitle}
+                style={{ fontFamily: "Monoton, cursive" }}
               >
-                <Clapperboard className={trailersStyles.titleIcon}/>
+                <Clapperboard className={trailersStyles.titleIcon} />
                 Latest Trailers
               </h2>
               <div className={trailersStyles.carouselControls}>
                 <div className={trailersStyles.controlButtons}>
-                  <button onClick={scrollLeft} className={trailersStyles.controlButton}>
-                    <ChevronLeft size = {18}/>
+                  <button
+                    onClick={scrollLeft}
+                    className={trailersStyles.controlButton}
+                  >
+                    <ChevronLeft size={18} />
                   </button>
-                  <button onClick={scrollRight} className={trailersStyles.controlButton}>
-                    <ChevronRight size = {18}/>
+                  <button
+                    onClick={scrollRight}
+                    className={trailersStyles.controlButton}
+                  >
+                    <ChevronRight size={18} />
                   </button>
                 </div>
                 <span className={trailersStyles.trailerCount}>
                   {dataToRender.length} trailers
                 </span>
               </div>
-              <div ref={carouselRef} className={trailersStyles.carousel} style={{scrollbarWidth: 'none' , msOverflowStyle: 'none'}}>
+              <div
+                ref={carouselRef}
+                className={trailersStyles.carousel}
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+              >
                 {dataToRender.map((trailer) => (
                   <div
-                  key={trailer.id}
-                  data-id={trailer.id}
-                  className={`${trailersStyles.carouselItem.base} ${
-                    featuredTrailer?.id === trailer.id ? trailersStyles.carouselItem.active : trailersStyles.carouselItem.inactive
-                  }`}
-                  style={{ width: "220px", height: "124px", minWidth: "220px" }}
-                  onClick={() => selectTrailer(trailer)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") selectTrailer(trailer);
-                  }}
-                  aria-pressed={featuredTrailer?.id === trailer.id}
-                >
-                  <img src={trailer.thumbnail || PLACEHOLDER_THUMB} alt={trailer.title} className={trailersStyles.carouselImage} loading="lazy" />
-                  <div className={trailersStyles.carouselOverlay}>
-                    <h3 className={trailersStyles.carouselTitle}>{trailer.title}</h3>
-                    <p className={trailersStyles.carouselGenre}>{trailer.genre}</p>
+                    key={trailer.id}
+                    data-id={trailer.id}
+                    className={`${trailersStyles.carouselItem.base} ${
+                      featuredTrailer?.id === trailer.id
+                        ? trailersStyles.carouselItem.active
+                        : trailersStyles.carouselItem.inactive
+                    }`}
+                    style={{
+                      width: "220px",
+                      height: "124px",
+                      minWidth: "220px",
+                    }}
+                    onClick={() => selectTrailer(trailer)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ")
+                        selectTrailer(trailer);
+                    }}
+                    aria-pressed={featuredTrailer?.id === trailer.id}
+                  >
+                    <img
+                      src={trailer.thumbnail || PLACEHOLDER_THUMB}
+                      alt={trailer.title}
+                      className={trailersStyles.carouselImage}
+                      loading="lazy"
+                    />
+                    <div className={trailersStyles.carouselOverlay}>
+                      <h3 className={trailersStyles.carouselTitle}>
+                        {trailer.title}
+                      </h3>
+                      <p className={trailersStyles.carouselGenre}>
+                        {trailer.genre}
+                      </p>
+                    </div>
                   </div>
-                </div>
                 ))}
               </div>
               <div className={trailersStyles.trendingSection}>
                 <h3 className={trailersStyles.trendingTitle}>Now TRending</h3>
-                {dataToRender.slice(0,3).map((trailer) => (
+                {dataToRender.slice(0, 3).map((trailer) => (
                   <div
-                  onClick={() => selectTrailer(trailer)} role="button" tabIndex={0} onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ")
-                    selectTrailer(trailer);
-                  }} 
-                  key={trailer.id} className={trailersStyles.trendingItem}>
+                    onClick={() => selectTrailer(trailer)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ")
+                        selectTrailer(trailer);
+                    }}
+                    key={trailer.id}
+                    className={trailersStyles.trendingItem}
+                  >
                     <div className={trailersStyles.trendingImage}>
-                      <img 
-                      src={trailer.thumbnail || PLACEHOLDER_THUMB} 
-                      alt ={trailer.title} 
-                      className={trailersStyles.trendingImageSrc} 
-                      loading="lazy"
+                      <img
+                        src={trailer.thumbnail || PLACEHOLDER_THUMB}
+                        alt={trailer.title}
+                        className={trailersStyles.trendingImageSrc}
+                        loading="lazy"
                       />
                     </div>
                     <div className={trailersStyles.trendingContent}>
@@ -381,22 +425,29 @@ const dataToRender = trailers || [];
                       ref={videoRef}
                     />
                     <div className={trailersStyles.closeButton}>
-                      <button  title="Close" onClick={() => setIsPlaying(false)} className={trailersStyles.closeButton}>
-                        <X size={28}/>
+                      <button
+                        title="Close"
+                        onClick={() => setIsPlaying(false)}
+                        className={trailersStyles.closeButton}
+                      >
+                        <X size={28} />
                       </button>
                     </div>
                   </div>
                 ) : (
                   <div className={trailersStyles.thumbnailContainer}>
-                    <img 
-                    src={featuredTrailer.thumbnail} 
-                    alt={featuredTrailer.title} 
-                    className={trailersStyles.thumbnailImage} 
-                    loading="eager"
+                    <img
+                      src={featuredTrailer.thumbnail}
+                      alt={featuredTrailer.title}
+                      className={trailersStyles.thumbnailImage}
+                      loading="eager"
                     />
                     <div className={trailersStyles.playButtonContainer}>
-                      <button onClick={togglePlay} className={trailersStyles.playButton}>
-                        <Play size={32} fill='white' />
+                      <button
+                        onClick={togglePlay}
+                        className={trailersStyles.playButton}
+                      >
+                        <Play size={32} fill="white" />
                       </button>
                     </div>
                   </div>
@@ -409,40 +460,51 @@ const dataToRender = trailers || [];
                   </h2>
                   <div className={trailersStyles.trailerMeta}>
                     <span className={trailersStyles.metaItem}>
-                      <Clock size={16} className={trailersStyles.metaIcon}/>
+                      <Clock size={16} className={trailersStyles.metaIcon} />
                       {featuredTrailer.duration}
                     </span>
                     <span className={trailersStyles.metaItem}>
-                    <Calendar size={16} className={trailersStyles.metaIcon}/>
+                      <Calendar size={16} className={trailersStyles.metaIcon} />
                       {featuredTrailer.year}
                     </span>
                   </div>
                 </div>
                 <div className={trailersStyles.genreContainer}>
-                  {(featuredTrailer.genre || "").split(",").map((genre, index) => (
-                    <span key={index} className={trailersStyles.genreTag}> 
-                    {genre.trim()}
-                    </span>
-                  ))}
+                  {(featuredTrailer.genre || "")
+                    .split(",")
+                    .map((genre, index) => (
+                      <span key={index} className={trailersStyles.genreTag}>
+                        {genre.trim()}
+                      </span>
+                    ))}
                 </div>
                 <p className={trailersStyles.description}>
                   {featuredTrailer.description}
                 </p>
                 <div className={trailersStyles.credits}>
-                  <h3 className={trailersStyles.creditsTitle}>
-                    credits
-                  </h3>
+                  <h3 className={trailersStyles.creditsTitle}>credits</h3>
                   <div className={trailersStyles.creditsGrid}>
-                  {featuredTrailer.credits &&
-                      Object.entries(featuredTrailer.credits).map(([role, person]) => (
-                        <div key={role} className={trailersStyles.creditItem}>
-                          <div className={trailersStyles.creditImage}>
-                            <img src={person.image} alt={person.name} className={trailersStyles.creditImageSrc} loading="lazy" />
+                    {featuredTrailer.credits &&
+                      Object.entries(featuredTrailer.credits).map(
+                        ([role, person]) => (
+                          <div key={role} className={trailersStyles.creditItem}>
+                            <div className={trailersStyles.creditImage}>
+                              <img
+                                src={person.image}
+                                alt={person.name}
+                                className={trailersStyles.creditImageSrc}
+                                loading="lazy"
+                              />
+                            </div>
+                            <div className={trailersStyles.creditName}>
+                              {person.name}
+                            </div>
+                            <div className={trailersStyles.creditRole}>
+                              {role}
+                            </div>
                           </div>
-                          <div className={trailersStyles.creditName}>{person.name}</div>
-                          <div className={trailersStyles.creditRole}>{role}</div>
-                        </div>
-                      ))}
+                        ),
+                      )}
                   </div>
                 </div>
               </div>
@@ -452,7 +514,7 @@ const dataToRender = trailers || [];
       </main>
       <style>{trailersCSS}</style>
     </div>
-  )
-}
+  );
+};
 
-export default Trailers
+export default Trailers;

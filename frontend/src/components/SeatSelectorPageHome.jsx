@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -13,7 +12,7 @@ import {
 import { toast } from "react-toastify";
 import { seatSelectorHStyles } from "../assets/dummyStyles";
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 /* layout */
 const ROWS = [
@@ -43,7 +42,7 @@ const slotToISO = (slot) => {
     if (slot.date && (slot.time || slot.datetime || slot.iso)) {
       const hhmm = to24Hour(
         slot.time || slot.datetime || slot.iso || "00:00",
-        slot.ampm || slot.amp || ""
+        slot.ampm || slot.amp || "",
       );
       return `${slot.date}T${hhmm}:00+05:30`;
     }
@@ -82,7 +81,7 @@ export default function SeatSelectorPage() {
   const [booked, setBooked] = useState(new Set());
   const [selected, setSelected] = useState(new Set());
   const [isAuthenticated, setIsAuthenticated] = useState(
-    Boolean(getAuthToken())
+    Boolean(getAuthToken()),
   );
   const [bookingLoading, setBookingLoading] = useState(false);
 
@@ -109,7 +108,7 @@ export default function SeatSelectorPage() {
       setLoading(true);
       try {
         const res = await axios.get(
-          `${API_BASE}/api/movies/${encodeURIComponent(movieIdParam)}`
+          `${API_BASE}/api/movies/${encodeURIComponent(movieIdParam)}`,
         );
         const data = res?.data;
         if (!mounted) return;
@@ -148,14 +147,14 @@ export default function SeatSelectorPage() {
     const slots = Array.isArray(movie.slots)
       ? movie.slots
       : Array.isArray(movie.showtimes)
-      ? movie.showtimes
-      : [];
+        ? movie.showtimes
+        : [];
     if (!slots.length) return null;
 
     const sString = slots.find(
       (s) =>
         typeof s === "string" &&
-        (s === slotKey || s === decodeURIComponent(slotKey))
+        (s === slotKey || s === decodeURIComponent(slotKey)),
     );
     if (sString) return { time: sString, audi: "Audi 1", _iso: sString };
 
@@ -202,17 +201,17 @@ export default function SeatSelectorPage() {
     if (!slotKey) {
       toast.error("Missing showtime. Select a time from the movie page.");
       navigate(
-        movie ? `/movies/${movie._id || movie.id || movieIdParam}` : "/movies"
+        movie ? `/movies/${movie._id || movie.id || movieIdParam}` : "/movies",
       );
       return;
     }
     const isValidDate = !!slotKey && !isNaN(new Date(slotKey).getTime());
     if (!isValidDate && !slotObj) {
       toast.error(
-        "Invalid or missing showtime. Please select a time from the movie page."
+        "Invalid or missing showtime. Please select a time from the movie page.",
       );
       navigate(
-        movie ? `/movies/${movie._id || movie.id || movieIdParam}` : "/movies"
+        movie ? `/movies/${movie._id || movie.id || movieIdParam}` : "/movies",
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -286,12 +285,12 @@ export default function SeatSelectorPage() {
           const sarr = Array.isArray(b.seats)
             ? b.seats
                 .map((s) =>
-                  typeof s === "string" ? s : (s && (s.seatId || s.id)) || ""
+                  typeof s === "string" ? s : (s && (s.seatId || s.id)) || "",
                 )
                 .filter(Boolean)
             : Array.isArray(b.seatIds)
-            ? b.seatIds.map(String).filter(Boolean)
-            : [];
+              ? b.seatIds.map(String).filter(Boolean)
+              : [];
           for (const s of sarr) paidSeats.push(normalizeSeatId(s));
         }
 
@@ -309,7 +308,7 @@ export default function SeatSelectorPage() {
       } catch (err) {
         console.warn(
           "Primary paid-bookings fetch failed, falling back:",
-          err?.message || err
+          err?.message || err,
         );
       }
 
@@ -334,7 +333,7 @@ export default function SeatSelectorPage() {
       } catch (err) {
         console.warn(
           "fetchBooked fallback failed, using local storage:",
-          err?.message || err
+          err?.message || err,
         );
         if (cancelled) return;
         try {
@@ -351,7 +350,7 @@ export default function SeatSelectorPage() {
           if (legacyRaw) {
             const arrLegacy = JSON.parse(legacyRaw);
             const s = new Set(
-              Array.isArray(arrLegacy) ? arrLegacy.map(normalizeSeatId) : []
+              Array.isArray(arrLegacy) ? arrLegacy.map(normalizeSeatId) : [],
             );
             setBooked(s);
             try {
@@ -417,7 +416,7 @@ export default function SeatSelectorPage() {
     if (!token) {
       toast.error("You must be logged in to book seats.");
       const returnUrl = encodeURIComponent(
-        window.location.pathname + window.location.search
+        window.location.pathname + window.location.search,
       );
       setTimeout(() => navigate(`/login?redirect=${returnUrl}`), 400);
       return;
@@ -465,26 +464,26 @@ export default function SeatSelectorPage() {
           localStorage.setItem(storageKey, JSON.stringify([...newBooked]));
         } catch (e) {}
         toast.success(
-          `${seatsArr.length} seat(s) reserved — proceed to payment`
+          `${seatsArr.length} seat(s) reserved — proceed to payment`,
         );
         return;
       }
       toast.error(
-        (data && data.message) || "Failed to create booking on server"
+        (data && data.message) || "Failed to create booking on server",
       );
     } catch (err) {
       console.error(
         "confirmBooking error:",
-        err?.response?.data || err.message || err
+        err?.response?.data || err.message || err,
       );
       if (err?.response?.status === 401) {
         toast.error("Session expired — please log in again.");
         ["token", "authToken", "accessToken", "jwt"].forEach((k) =>
-          localStorage.removeItem(k)
+          localStorage.removeItem(k),
         );
         setIsAuthenticated(false);
         const returnUrl = encodeURIComponent(
-          window.location.pathname + window.location.search
+          window.location.pathname + window.location.search,
         );
         setTimeout(() => navigate(`/login?redirect=${returnUrl}`), 400);
         return;
@@ -506,11 +505,11 @@ export default function SeatSelectorPage() {
             return next;
           });
           toast.error(
-            `Some seats were just booked by others: ${occupied.join(", ")}`
+            `Some seats were just booked by others: ${occupied.join(", ")}`,
           );
         } else {
           toast.error(
-            err.response.data?.message || "Some seats are already booked"
+            err.response.data?.message || "Some seats are already booked",
           );
         }
         return;
@@ -800,8 +799,8 @@ export default function SeatSelectorPage() {
                     {bookingLoading
                       ? "Booking..."
                       : isAuthenticated
-                      ? "Confirm Booking"
-                      : "Log in to Book"}
+                        ? "Confirm Booking"
+                        : "Log in to Book"}
                   </button>
                 </div>
               </div>

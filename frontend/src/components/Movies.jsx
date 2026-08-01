@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react'
-import { moviesStyles } from '../assets/dummyStyles'
-import { Link } from 'react-router-dom'
-import { Tickets } from 'lucide-react'
+import React, { useEffect, useState } from "react";
+import { moviesStyles } from "../assets/dummyStyles";
+import { Link } from "react-router-dom";
+import { Tickets } from "lucide-react";
 
-const API_BASE = "http://localhost:5000"
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const PLACEHOLDER = "https://via.placeholder.com/400x600?text=No+Poster";
 
 const getUploadUrl = (maybe) => {
@@ -13,73 +13,69 @@ const getUploadUrl = (maybe) => {
   return `${API_BASE}/uploads/${String(maybe).replace(/^uploads\//, "")}`;
 };
 
-
 const Movies = () => {
-   const [movies, setMovies] = useState([]);
-   const [loading, setLoading] = useState(true);
-   const [ error, setError] = useState(null);
+  const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-   useEffect(() => {
-      const ac = new AbortController();
-      setLoading(true);
-      setError(null);
+  useEffect(() => {
+    const ac = new AbortController();
+    setLoading(true);
+    setError(null);
 
-      async function loadFeaturedMovies(){
-         try {
-            const url =`${API_BASE}/api/movies?featured=true&limit=100`;
-            const res = await fetch(url, {signal: ac.signal});
-            
-            if(!res.ok) throw new Error(`fetch error: ${res.status}`)
-            const json = await res.json();
+    async function loadFeaturedMovies() {
+      try {
+        const url = `${API_BASE}/api/movies?featured=true&limit=100`;
+        const res = await fetch(url, { signal: ac.signal });
 
-            const items = json.items ?? (Array.isArray(json) ? json : []);
+        if (!res.ok) throw new Error(`fetch error: ${res.status}`);
+        const json = await res.json();
 
-            const featuredOnly = items.filter(
-               (it) =>
-               it?.featured === true ||
-               it?.isFeatured === true ||
-               String(it?.type)?.toLowerCase() === 'featured'
-   );
-   setMovies(featuredOnly.slice(0,6));
-   setLoading(false);
-         } 
-         
+        const items = json.items ?? (Array.isArray(json) ? json : []);
 
-         catch (err) {
-            if(err.name === 'AbortError') return;
-            console.error('Movies load error:',err);
-            setError('Failed to load Movies ');
-            setLoading(false);
-         }
+        const featuredOnly = items.filter(
+          (it) =>
+            it?.featured === true ||
+            it?.isFeatured === true ||
+            String(it?.type)?.toLowerCase() === "featured",
+        );
+        setMovies(featuredOnly.slice(0, 6));
+        setLoading(false);
+      } catch (err) {
+        if (err.name === "AbortError") return;
+        console.error("Movies load error:", err);
+        setError("Failed to load Movies ");
+        setLoading(false);
       }
-      loadFeaturedMovies();
-      return () => ac.abort();
-   },[])
+    }
+    loadFeaturedMovies();
+    return () => ac.abort();
+  }, []);
   return (
     <section className={moviesStyles.container}>
-       <style>{`
+      <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Pacifico&display=swap');
       `}</style>
       <h2
-      style={{
-         fontFamily:"'Dancing Script', cursive",
-      }}
-      className={moviesStyles.title}
+        style={{
+          fontFamily: "'Dancing Script', cursive",
+        }}
+        className={moviesStyles.title}
       >
-         Featured Movies
+        Featured Movies
       </h2>
 
       {loading ? (
-         <div className="text-gray-300 py-12 text-center">Loading movies...</div>
+        <div className="text-gray-300 py-12 text-center">Loading movies...</div>
       ) : error ? (
-         <div className="text-red-400 py-12 text-center">{error}</div>
+        <div className="text-red-400 py-12 text-center">{error}</div>
       ) : movies.length === 0 ? (
-         <div className="text-gray-400 py-12 text-center">
-            No featured movies found.
-         </div>
+        <div className="text-gray-400 py-12 text-center">
+          No featured movies found.
+        </div>
       ) : (
-         <div className={moviesStyles.grid}>
-               {movies.map((m) => {
+        <div className={moviesStyles.grid}>
+          {movies.map((m) => {
             const rawImg =
               m.poster || m.latestTrailer?.thumbnail || m.thumbnail || null;
             const imgSrc = getUploadUrl(rawImg) || PLACEHOLDER;
@@ -90,50 +86,48 @@ const Movies = () => {
               "General";
             const movieId = m._id || m.id || title;
 
-            return(
-            
-               <article key={movieId} className={moviesStyles.movieArticle}>
-                     <Link to={`/movie/${movieId}`} className={moviesStyles.movieLink}>
-                  <img 
-                  src={imgSrc} 
-                  alt={title} 
-                  loading="lazy" 
-                  className={moviesStyles.movieImage}
-                  onError={(e) => {
-                     e.currentTarget.src = PLACEHOLDER;
-                  }}
+            return (
+              <article key={movieId} className={moviesStyles.movieArticle}>
+                <Link
+                  to={`/movie/${movieId}`}
+                  className={moviesStyles.movieLink}
+                >
+                  <img
+                    src={imgSrc}
+                    alt={title}
+                    loading="lazy"
+                    className={moviesStyles.movieImage}
+                    onError={(e) => {
+                      e.currentTarget.src = PLACEHOLDER;
+                    }}
                   />
-                  </Link>
-                  <div className={moviesStyles.movieInfo}>
-                     <div className={moviesStyles.movietitleContainer}>
-                        <Tickets className={moviesStyles.ticketsIcon}/>
-                        <span id={`movie-title-${movieId}`} className={moviesStyles.movieTitle}
-                        style={{
-                           fontFamily:"'Pacifico',cursive",
-                        }}
-                        >
-                           {title}
-   
-                        </span>
-                     </div>
-                     <div className={moviesStyles.categoryContainer}>
-                        <span className={moviesStyles.categoryText}>{category}</span>
-   
-                     </div>
+                </Link>
+                <div className={moviesStyles.movieInfo}>
+                  <div className={moviesStyles.movietitleContainer}>
+                    <Tickets className={moviesStyles.ticketsIcon} />
+                    <span
+                      id={`movie-title-${movieId}`}
+                      className={moviesStyles.movieTitle}
+                      style={{
+                        fontFamily: "'Pacifico',cursive",
+                      }}
+                    >
+                      {title}
+                    </span>
                   </div>
-               </article>
+                  <div className={moviesStyles.categoryContainer}>
+                    <span className={moviesStyles.categoryText}>
+                      {category}
+                    </span>
+                  </div>
+                </div>
+              </article>
             );
           })}
-
-  
-     
-         
-         
-
-      </div>
+        </div>
       )}
     </section>
   );
 };
 
-export default Movies
+export default Movies;
