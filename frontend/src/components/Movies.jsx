@@ -3,7 +3,7 @@ import { moviesStyles } from "../assets/dummyStyles";
 import { Link } from "react-router-dom";
 import { Tickets } from "lucide-react";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+const API_BASE = import.meta.env.VITE_API_BASE;
 const PLACEHOLDER = "https://via.placeholder.com/400x600?text=No+Poster";
 
 const getUploadUrl = (maybe) => {

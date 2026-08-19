@@ -4,7 +4,7 @@ import { createCheckoutSession } from "../services/stripe.service.js";
 import Booking from "../models/bookingModel.js";
 import Movie from "../models/movieModel.js";
 
-const CLIENT_URL = "http://localhost:5173";
+const CLIENT_URL = process.env.CLIENT_BASE_URL;
 const RECLINER_ROWS = new Set(["D", "E"]);
 const BLOCKING_STATUSES = [
   "pending",

@@ -8,12 +8,17 @@ import movieRouter from "./routes/movieRouter.js";
 import bookingRouter from "./routes/bookingRouter.js";
 
 const app = express();
-const port = 5000;
+const port = process.env.PORT;
 
 //MIDDLEWARES
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://13.235.90.204",
+];
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: allowedOrigins,
     credentials: true,
   }),
 );

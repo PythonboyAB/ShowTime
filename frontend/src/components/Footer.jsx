@@ -101,8 +101,7 @@ const Footer = () => {
                 style={{ fontFamily: "Monton, cursive" }}
                 className={footerStyles.brandTitle}
               >
-                ShowTime
-                <span className={footerStyles.brandTitleWhite}>Spot</span>
+                Show<span className={footerStyles.brandTitleWhite}>Time</span>
               </h2>
             </div>
             <p className={footerStyles.brandDescription}>
@@ -173,7 +172,7 @@ const Footer = () => {
                 <div className={footerStyles.contactIconContainer}>
                   <Phone className={footerStyles.contactIcon} />
                 </div>
-                <span className={footerStyles.contactText}>+91 8299431885</span>
+                <span className={footerStyles.contactText}>+91 8652427717</span>
               </li>
               <li className={footerStyles.contactItem}>
                 <div className={footerStyles.contactIconContainer}>
@@ -193,7 +192,7 @@ const Footer = () => {
         <div className={footerStyles.bottomBar}>
           <div className={footerStyles.designedBy}>
             <span className={footerStyles.designedByText}>
-              Designed by Harshvardhan
+              Designed by Abhishek
             </span>
           </div>
           <div className={footerStyles.policyLinks}>

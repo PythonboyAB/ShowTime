@@ -567,7 +567,7 @@ function DetailView({ item, onClose }) {
         <div className="flex-1">
           <div className={styles5.detailTypeIndicator}>
             <div
-              className={`${styles5.detailTypeDot} bg-gradient-to-r ${getTypeGradient(
+              className={`${styles5.detailTypeDot} bg-linear-to-r ${getTypeGradient(
                 item.type,
               )}`}
             ></div>

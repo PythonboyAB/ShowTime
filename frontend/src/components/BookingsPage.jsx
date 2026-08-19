@@ -9,7 +9,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Film, Clock, MapPin, QrCode, ChevronDown, X } from "lucide-react";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+const API_BASE = import.meta.env.VITE_API_BASE;
 
 function getStoredToken() {
   return (

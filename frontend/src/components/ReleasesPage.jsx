@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { moviesStyles, releasesStyles } from "../assets/dummyStyles";
 
 const PLACEHOLDER_IMG = "https://via.placeholder.com/400x600?text=No+Image";
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+const API_BASE = import.meta.env.VITE_API_BASE;
 
 // to get img from uploads folder
 const getUploadUrl = (maybeFilenameOrUrl) => {

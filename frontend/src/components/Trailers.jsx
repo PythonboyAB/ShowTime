@@ -10,7 +10,7 @@ import {
 import { trailersStyles, trailersCSS } from "../assets/dummyStyles";
 import { useEffect, useRef, useState } from "react";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+const API_BASE = import.meta.env.VITE_API_BASE;
 
 const PLACEHOLDER_THUMB =
   "https://via.placeholder.com/800x450?text=No+Thumbnail";

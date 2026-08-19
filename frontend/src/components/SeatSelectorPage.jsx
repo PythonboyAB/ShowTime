@@ -12,7 +12,7 @@ import {
 import { toast } from "react-toastify";
 import { seatSelectorHStyles } from "../assets/dummyStyles";
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = import.meta.env.VITE_API_BASE;
 
 /* layout */
 const ROWS = [
@@ -435,7 +435,7 @@ export default function SeatSelectorPage() {
       const res = await axios.post(`${API_BASE}/api/bookings`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      //jh
+
       if (res?.data?.success && res?.data?.checkout?.url) {
         try {
           await fetchOccupied({ fallbackToLocal: false });

@@ -12,7 +12,7 @@ import {
 import { toast } from "react-toastify";
 import { seatSelectorHStyles } from "../assets/dummyStyles";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+const API_BASE = import.meta.env.VITE_API_BASE;
 
 /* layout */
 const ROWS = [

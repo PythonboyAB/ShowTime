@@ -10,7 +10,7 @@ import {
   Popcorn,
 } from "lucide-react";
 import axios from "axios";
-const API_BASE = `${import.meta.env.VITE_API_BASE_URL}/api/auth`;
+const API_BASE = import.meta.env.VITE_API_BASE;
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -42,7 +42,7 @@ const LoginPage = () => {
         email: formData.email.trim(),
         password: formData.password,
       };
-      const res = await axios.post(`${API_BASE}/login`, payload, {
+      const res = await axios.post(`${API_BASE}/api/auth/login`, payload, {
         headers: { "Content-Type": "application/json" },
       });
       const data = res.data;

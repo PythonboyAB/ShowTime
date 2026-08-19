@@ -15,7 +15,7 @@ import {
 import { toast } from "react-toastify";
 import { movieDetailHStyles } from "../assets/dummyStyles";
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = import.meta.env.VITE_API_BASE;
 const ROWS = [
   { id: "A", type: "standard", count: 8 },
   { id: "B", type: "standard", count: 8 },
@@ -37,21 +37,21 @@ const FallbackAvatar = ({ className = "w-12 h-12" }) => (
 // Function to format duration to hours and minutes
 const formatDuration = (duration) => {
   if (!duration) return "N/A";
-  
+
   // If it's already in "Xh Ym" format, return as is
-  if (typeof duration === 'string' && /^\d+h\s*\d*m?$/.test(duration)) {
+  if (typeof duration === "string" && /^\d+h\s*\d*m?$/.test(duration)) {
     return duration;
   }
-  
+
   // If it's a number (in minutes), convert to hours and minutes
-  if (typeof duration === 'number') {
+  if (typeof duration === "number") {
     const hours = Math.floor(duration / 60);
     const minutes = duration % 60;
     return `${hours}h ${minutes}m`;
   }
-  
+
   // If it's a string that might contain numbers, try to parse
-  if (typeof duration === 'string') {
+  if (typeof duration === "string") {
     // Try to extract numbers for minutes
     const minutesMatch = duration.match(/(\d+)\s*min/);
     if (minutesMatch) {
@@ -60,11 +60,11 @@ const formatDuration = (duration) => {
       const minutes = totalMinutes % 60;
       return `${hours}h ${minutes}m`;
     }
-    
+
     // Try to extract hours and minutes separately
     const hoursMatch = duration.match(/(\d+)\s*h/);
     const minsMatch = duration.match(/(\d+)\s*m/);
-    
+
     if (hoursMatch && minsMatch) {
       return `${hoursMatch[1]}h ${minsMatch[1]}m`;
     } else if (hoursMatch) {
@@ -76,7 +76,7 @@ const formatDuration = (duration) => {
       return `${hours}h ${minutes}m`;
     }
   }
-  
+
   // Return original if no formatting could be applied
   return duration;
 };
@@ -85,7 +85,7 @@ function extractYouTubeId(urlOrId) {
   if (!urlOrId) return null;
   if (/^[A-Za-z0-9_-]{6,}$/.test(urlOrId)) return urlOrId;
   const m = String(urlOrId).match(
-    /(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|.*[?&]v=)|youtu\.be\/)([A-Za-z0-9_-]{6,})/i
+    /(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|.*[?&]v=)|youtu\.be\/)([A-Za-z0-9_-]{6,})/i,
   );
   return m ? m[1] : null;
 }
@@ -118,7 +118,7 @@ const formatTimeInTZ = (dateLike, timeZone = "Asia/Kolkata") => {
   const p = getParts(dateLike, timeZone);
   const hour = String(Number(p.hour));
   return `${hour}:${p.minute} ${String(
-    p.dayPeriod ?? p.ampm ?? ""
+    p.dayPeriod ?? p.ampm ?? "",
   ).toUpperCase()}`;
 };
 
@@ -185,7 +185,7 @@ export default function MovieDetailPage() {
       }
       try {
         const res = await axios.get(
-          `${API_BASE}/api/movies/${encodeURIComponent(movieIdParam)}`
+          `${API_BASE}/api/movies/${encodeURIComponent(movieIdParam)}`,
         );
         const data = res?.data;
         if (!mounted) return;
@@ -423,7 +423,7 @@ export default function MovieDetailPage() {
   const handleTimeSelect = (datetime) => {
     setSelectedTime(datetime);
     navigate(
-      buildSeatSelectorPath(movie._id || movie.id || movieIdParam, datetime)
+      buildSeatSelectorPath(movie._id || movie.id || movieIdParam, datetime),
     );
   };
   const handleBookNow = () => {
@@ -431,8 +431,8 @@ export default function MovieDetailPage() {
       navigate(
         buildSeatSelectorPath(
           movie._id || movie.id || movieIdParam,
-          selectedTime
-        )
+          selectedTime,
+        ),
       );
     else toast.error("Please select a showtime first");
   };
@@ -474,10 +474,10 @@ export default function MovieDetailPage() {
   const categoryList = Array.isArray(movie.categories)
     ? movie.categories
     : Array.isArray(movie.genres)
-    ? movie.genres
-    : movie.genre
-    ? [movie.genre]
-    : [];
+      ? movie.genres
+      : movie.genre
+        ? [movie.genre]
+        : [];
   const producer =
     movie.producer ||
     (Array.isArray(movie.producers) && movie.producers[0]) ||
@@ -632,7 +632,7 @@ export default function MovieDetailPage() {
                   showtimeDays[selectedDay].showtimes.map((showtime, index) => {
                     const bookedCount = getBookedCountFor(
                       showtime.datetime,
-                      showtime.audi
+                      showtime.audi,
                     );
                     const isSoldOut = bookedCount >= TOTAL_SEATS;
                     return (
@@ -649,7 +649,7 @@ export default function MovieDetailPage() {
                             ? "All seats booked for this showtime"
                             : `Seats available: ${Math.max(
                                 0,
-                                TOTAL_SEATS - bookedCount
+                                TOTAL_SEATS - bookedCount,
                               )}`
                         }
                         aria-disabled={isSoldOut}
@@ -703,8 +703,8 @@ export default function MovieDetailPage() {
                               c.img && c.img.startsWith("http")
                                 ? c.img
                                 : c.preview && c.preview.startsWith("http")
-                                ? c.preview
-                                : getImageUrl(c.img || c.preview || c.file)
+                                  ? c.preview
+                                  : getImageUrl(c.img || c.preview || c.file)
                             }
                             alt={c.name}
                             loading="lazy"
@@ -760,8 +760,8 @@ export default function MovieDetailPage() {
                 const directors = Array.isArray(movie.directors)
                   ? movie.directors
                   : movie.director
-                  ? [movie.director]
-                  : [];
+                    ? [movie.director]
+                    : [];
                 return (
                   <div className={movieDetailHStyles.crewGridInner}>
                     {directors.length ? (
@@ -773,8 +773,8 @@ export default function MovieDetailPage() {
                                 d.img && d.img.startsWith("http")
                                   ? d.img
                                   : d.preview && d.preview.startsWith("http")
-                                  ? d.preview
-                                  : getImageUrl(d.img || d.preview || d.file)
+                                    ? d.preview
+                                    : getImageUrl(d.img || d.preview || d.file)
                               }
                               alt={d.name || `Director ${i + 1}`}
                               loading="lazy"
