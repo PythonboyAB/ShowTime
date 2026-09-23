@@ -1,6 +1,6 @@
-# 🎬 KinoSpot – Smart Online Cinema Reservation System
+# 🎬 ShowTime – Smart Online Cinema Reservation System
 
-KinoSpot is a **full-stack MERN web application** that allows users to browse movies, select seats, and book tickets online with secure payment integration.
+ShowTime is a **full-stack MERN web application** that allows users to browse movies, select seats, and book tickets online with secure payment integration.
 
 ## 🚀 Features
 
