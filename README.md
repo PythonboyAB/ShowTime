@@ -1,94 +1,180 @@
 # 🎬 ShowTime – Smart Online Cinema Reservation System
 
-ShowTime is a **full-stack MERN web application** that allows users to browse movies, select seats, and book tickets online with secure payment integration.
+ShowTime is a **full-stack MERN cinema reservation platform** where users can browse movies, view show details, select seats, and book tickets online with integrated payment processing.
+
+The project includes separate **user and admin applications**, a Node.js/Express backend, MongoDB database, Stripe payments, and AWS S3-based media storage.
 
 ## 🚀 Features
 
-### User Functionality
+### 👤 User Functionality
 
-* Browse available and upcoming movies
-* View detailed movie information
-* Select seats (Standard & Recliner)
-* Check real-time seat availability
-* Book tickets online
-* Secure payment integration using Stripe
+- Browse available and upcoming movies
+- View movie details and show information
+- Select seats with **Standard and Recliner** options
+- Check seat availability before booking
+- Book cinema tickets online
+- Secure user authentication
+- Online payment using **Stripe**
+- View booking information and generated ticket details
+- QR-code based ticket support
 
-### Admin Functionality
+### 🛠️ Admin Functionality
 
-* Add, update, and delete movies
-* Manage bookings
-* Upload movie posters
+- Add, update, and delete movies
+- Manage movie information and bookings
+- Upload and manage movie posters/media
+- Separate admin dashboard/application
 
 ## 🧠 Tech Stack
 
 ### Frontend
 
-* React.js
-* Vite
-* Tailwind CSS
+- React.js
+- Vite
+- Tailwind CSS
+- React Router
+- Axios
+- React Toastify
+- Lucide React
+- QRCode
 
 ### Backend
 
-* Node.js
-* Express.js
+- Node.js
+- Express.js
+- REST APIs
+- JWT authentication
+- bcrypt / bcryptjs for password hashing
+- Multer for file handling
+- CORS
+- dotenv
 
 ### Database
 
-* MongoDB
+- MongoDB
+- Mongoose
 
-### Payment
+### Payments
 
-* Stripe API
+- Stripe API
+
+### Cloud & Deployment
+
+- AWS S3 for media storage
+- AWS EC2 for deployment
+- Nginx as a reverse proxy
+- PM2 for Node.js process management
+
+## 🏗️ Project Structure
+
+```text
+ShowTime/
+├── frontend/     # User-facing React application
+├── admin/        # Admin React application
+└── backend/      # Node.js + Express API server
+```
 
 ## ⚙️ Installation & Setup
 
-### Clone Repository
+### 1. Clone Repository
 
-```
-git clone https://github.com/Harshvardhan-87/KinoSpot-.git
-cd KinoSpot-
+```bash
+git clone https://github.com/PythonboyAB/ShowTime.git
+cd ShowTime
 ```
 
-### Backend Setup
+### 2. Backend Setup
 
-```
+```bash
 cd backend
 npm install
 ```
 
-Create `.env` file in backend:
+Create a `.env` file inside the `backend` directory:
 
-```
+```env
 PORT=5000
 MONGO_URI=your_mongodb_connection
 STRIPE_SECRET_KEY=your_stripe_secret_key
 CLIENT_URL=http://localhost:5173
 ```
 
-Run backend:
+Start the backend:
 
-```
-npm run server
+```bash
+npm start
 ```
 
-### Frontend Setup
+### 3. Frontend Setup
 
-```
+Open a new terminal:
+
+```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-### Admin Setup
+### 4. Admin Setup
 
-```
+Open another terminal:
+
+```bash
 cd admin
 npm install
 npm run dev
 ```
 
+> **Note:** If additional AWS S3 credentials or environment variables are required by the current backend configuration, add them to the backend `.env` file before running the application.
+
 ## 🔐 Security
 
-* Uses environment variables (.env)
-* Secrets are not stored in code
-* Secure authentication and booking flow
+- Sensitive configuration is stored using environment variables
+- Passwords are protected using bcrypt-based hashing
+- JWT is used for authentication
+- Stripe secret keys are kept on the backend
+- CORS is configured for frontend-backend communication
+- Secrets are not committed directly into the source code
+
+## ☁️ Deployment
+
+The application is structured for production deployment with:
+
+- **AWS EC2** – application hosting
+- **Nginx** – reverse proxy and request routing
+- **PM2** – backend process management
+- **AWS S3** – movie posters and media storage
+
+## 🔄 Application Flow
+
+```text
+User
+  ↓
+React Frontend
+  ↓
+Express REST API
+  ↓
+MongoDB
+  ↓
+Stripe Payment
+  ↓
+Booking Confirmation
+```
+
+Media uploads are handled through the backend and stored using AWS S3.
+
+## 📌 Project Highlights
+
+- Full-stack MERN architecture with separate frontend, backend, and admin applications
+- RESTful API-based communication between client and server
+- Seat-selection and booking workflow
+- Integrated online payment processing
+- JWT-based authentication
+- Cloud-based media storage with AWS S3
+- Production deployment using EC2, Nginx, and PM2
+
+## 👨‍💻 Author
+
+**PythonboyAB**
+
+GitHub: https://github.com/PythonboyAB
